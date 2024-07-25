@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>健民计量管理系统</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        td{
+            border: 2px solid blueviolet;
+            font-size: 20px;
+            text-align: center;
+        }
+        #root{
+            margin: 0 auto;
+        }
+        #root{
+            position: relative;
+            background-color: #bfa;
+        }
+        h1{
+           text-align: center;
+            margin: 0 auto;
+        }
+        table{
+            margin: 20px auto;
+            border: 4px solid black;
+        }
+        .addContent{
+            position: absolute;
+            /* display: none; */
+            background-color: #ccc;
+        }
+        input{
+          text-align: center;
+          /* background-col; */
+          /* overflow:visible;
+          word-break: break-all; */
+        }
+        .equName{
+          width: 100px;
+        }
+        #date{
+          width: 70px;
+        }
+        #roomNumber{
+          width: 50px;
+        }
+        td{
+          margin: 0;
+          padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="root">
+
+        <button @click="add">添加</button>
+        <button @click="deleteequ">删除</button>
+        <div class="addContent" :style="sty">
+            <label>管理编号    <input type="text" v-model="equNumber"></label><br>
+            <label>仪表名称    <input type="text" v-model="equName"></label><br>
+            <label>规格型号    <input type="text" v-model="equModel"></label><br>
+            <label>主要技术参数<input type="text" v-model="equparameter"></label><br>
+            <label>制造厂名    <input type="text" v-model="equMade"></label><br>
+            <label>出厂编号    <input type="text" v-model="factoryNumber"></label><br>
+            <label>房间名      <input type="text" v-model="roomName"></label><br>
+            <label>房间号      <input type="text" v-model="roomNumber"></label><br>
+            <label>已校验日期<input type="text" v-model="checkDate"></label><br>
+            <label>下次校验日期<input type="text" v-model="checkedDate"></label><br>
+            <label>设备名称<input type="text" v-model="device"></label><br>
+            <label>设备编号<input type="text" v-model="deviceNumber"></label><br>
+          <button @click="close">关闭</button>
+          <button @click="submit">提交</button>
+        </div>
+        <h1>健民计量管理系统</h1>
+        <table>
+                <thead>
+                    <!-- 表头 -->
+                    <tr>
+                        <th>管理编号</th>
+                        <th>仪表名称</th>
+                        <th>规格型号 </th>
+                        <th>主要技术参数</th>
+                        <th>制造厂名</th>
+                        <th>出厂编号</th>
+                        <th>房间名</th>
+                        <th>房间号</th>
+                        <th>设备名称</th>
+                        <th>设备编号</th>
+                        <th>已校验日期</th>
+                        <th>已校验日期</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- 内容 -->
+            <tr v-for="v in value"><td>
+                
+                <input type="textarea" :rows="9" 
+                v-model="v.equNumber"></td><td><input class="equName" type="text" v-model="v.equName"></td>
+                <td><input type="text" v-model="v.equModel"></td><td><input type="text" v-model="v.equparameter"></td>
+                <td><input type="text" v-model="v.equMade"></td><td><input type="text" v-model="v.factoryNumber"></td>
+                <td><input type="text" v-model="v.roomName"></td><td><input type="text" v-model="v.roomNumber" id="roomNumber"></td>
+                <td><input type="text" id="date" v-model="v.checkDate"></td><td><input type="text" id="date" v-model="v.checkedDate"></td>
+            <td><input type="text" id="date"  v-model="v.device"></td><td><input type="text" id="date" v-model="v.deviceNumber"><input type="checkbox" :name="v.id" @change="checkBox" v-model="v.isFlag"></td>
+          </tr>                    
+
+                </tbody>
+        </table>
+        
+    </div>
+
+</body>
+</html>
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script src="./dexie.js"></script>
+<script>
+    
+    const db = new Dexie('MyDatabase');
+db.version(2).stores({
+    friends: '++id, &equNumber, equName, equModel, equparameter, equMade , factoryNumber , roomName , roomNumber, checkDate, checkedDate , age, isFlag, device, deviceNumber ' // 这里创建了一些索引
+});
+// db.friends.put({
+//     name:'zs',   
+//     age:112
+// });
+function rander(db){
+    return new Promise((resolve,reject)=>{
+        resolve(db.friends.where("age").below(666).toArray());
+    })
+};
+rander(db).then(value=>{
+    // console.log(value);
+    Vue.config.productionTip=false;
+    const vm =new Vue({
+        el:"#root",
+        data:{
+           value,
+           sty:{
+            display:'none'
+           },
+           id:'',
+           equNumber:'',
+           equName:'',
+           equModel:'',
+           equparameter:'',
+           equMade:'',
+           factoryNumber:'',
+           roomName:'',
+           roomNumber:'',
+           checkDate:'',
+           checkedDate:'',
+            isFlag:0,
+            delArr:[],
+            device:'',
+            deviceNumber:'',
+           age:100
+
+        },
+        watch:{
+            immediate:true,
+          
+           value:{
+            deep:true,
+            // 修改功能
+            handler(newValue,oldValue){
+            for(let i = 0 ; i<this.value.length;i++){
+                newValue[i].isFlag=Number(newValue[i].isFlag)
+                db.friends.put(newValue[i])
+                
+            
+                
+            }
+         }
+           }
+        },
+        methods:{
+            // 添加板块
+          add(){
+            this.sty.display='block'
+          },
+        //   关闭添加板块
+          close(){
+            this.sty.display='none'
+          },
+        //   添加功能
+          submit(){
+        //     console.log(this.equNumber,
+        //    this.equName,
+        //    this.equModel,
+        //    this.equparameter,
+        //    this.equMade,
+        //    this.factoryNumber,
+        //    this.roomName,
+        //    this.roomNumber,
+        //    this.checkDate,
+        //    this.checkedDate)
+        //    var equ ={
+        //     equNumber:this.equNumber,
+        //     equName:this.equName,
+        //     equModel:this.equModel,
+        //     equparameter:this.equparameter,
+        //     equMade:this.equMade,
+        //     factoryNumber:this.factoryNumber,
+        //     roomName:this.roomName,
+        //     roomNumber:this.roomNumber,
+        //     checkDate:this.checkDate,
+        //     checkedDate:this.checkedDate
+        //    }
+          // 添加功能
+            db.friends.put({
+            equNumber:this.equNumber,
+            equName:this.equName,
+            equModel:this.equModel,
+            equparameter:this.equparameter,
+            equMade:this.equMade,
+            factoryNumber:this.factoryNumber,
+            roomName:this.roomName,
+            roomNumber:this.roomNumber,
+            checkDate:this.checkDate,
+            checkedDate:this.checkedDate,
+            device:this.device,
+            deviceNumber:this.deviceNumber,
+            isFlag:0,
+            age:this.age
+            });
+          rander(db).then(value=>{
+          
+            this.value=value;
+            alert("添加成功！");
+          })
+          },
+
+          checkBox(e){
+          db.friends.get(Number(e.target.name)).then(value=>{
+
+                value.isFlag=Number(e.target.checked);
+                // console.log(value);
+                console.log(Number(e.target.checked))
+          });
+          },
+        //   删除功能
+          deleteequ(){
+           db.friends.where("isFlag").equals(1).toArray().then(delArr=>{
+            // console.log(delArr);
+          if(delArr.length!=0){
+            for(var i = 0 ; i<delArr.length ; i++){
+                console.log(delArr[i].id);
+                db.friends.delete(delArr[i].id);
+            }
+            // console.log("删除成功！");
+            alert("删除成功！");
+            rander(db).then(value=>{
+          
+          this.value=value;
+         
+        })
+          }
+           });
+          }
+
+        }
+       
+    });
+},reason=>{});
+
+
+// console.log(db.friends);
+ 
+  
+</script>
